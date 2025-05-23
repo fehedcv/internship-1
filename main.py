@@ -12,16 +12,17 @@ app = FastAPI()
 
 @app.post("/create_org")
 def create_org(org:OrgCreate):
-    db_org = Organization(name = org.name)
-    session.add(db_org)
+    session_org = Organization(name = org.name)
+    session.add(session_org)
     session.commit()
     return {"message":"Organization created successfully"}
 
 
-@app.get("/get_orgs")
-def get_org():
-    orgs = session.query(Organization).all()
-    return {"Organizations":orgs}
+@app.get("/get_orgs/{page_number}")
+def get_org(page_number : int,limit : int = 10):
+    offset  = (page_number-1) * limit
+    orgs = session.query(Organization).offset(offset).limit(limit).all()
+    return orgs
     
     
 @app.post("/create_user")
@@ -32,11 +33,11 @@ def create_user(user:UserCreate):
     return {"message":"User created successfully"}
 
 
-@app.get("/get_user")
-def get_user():
-    users = session.query(User).all()
-    return {"Users":users}
-
+@app.get("/get_users/{page_number}")
+def get_user(page_number:int):
+    offset = (page_number-1) * 10
+    users = session.query(User).offset(offset).limit(10).all()
+    return users
 
 
 @app.post("/create_role")
@@ -63,5 +64,3 @@ def assign_role(assign:AssignUserRole):
 def get_assigned_roles():
     assigned_roles = session.query(UserRole).all()
     return {"AssignedRoles":assigned_roles}
-
-    
