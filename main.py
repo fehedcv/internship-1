@@ -64,3 +64,4 @@ def assign_role(assign:AssignUserRole):
 def get_assigned_roles():
     assigned_roles = session.query(UserRole).all()
     return {"AssignedRoles":assigned_roles}
+
