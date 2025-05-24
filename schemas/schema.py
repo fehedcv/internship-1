@@ -9,7 +9,7 @@ class UserCreate(BaseModel):
     email : EmailStr 
     password : str = Field(...,min_length=8,max_length=100)
     organization_id : int
-    
+    is_customer : bool
 class RoleCreate(BaseModel):
     name : str
 
