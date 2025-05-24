@@ -24,10 +24,17 @@ def get_org(page_number : int,limit : int = 10):
     orgs = session.query(Organization).offset(offset).limit(limit).all()
     return orgs
     
+
+@app.delete("/delete_org/{org_id}")
+def del_org(org_id:int):
+    session_org = session.query(Organization).filter(Organization.id == org_id).first()
+    session.delete(session_org)
+    session.commit()
+    return {"message":"Organization deleted successfully"}
     
 @app.post("/create_user")
 def create_user(user:UserCreate):
-    new_user = User(name = user.name,email = user.email , password = user.password, organization_id = user.organization_id)
+    new_user = User(name = user.name,email = user.email , password = user.password, organization_id = user.organization_id, is_customer = user.is_customer)
     session.add(new_user)
     session.commit()
     return {"message":"User created successfully"}
