@@ -34,7 +34,7 @@ def del_org(org_id:int):
     
 @app.post("/create_user")
 def create_user(user:UserCreate):
-    new_user = User(name = user.name,email = user.email , password = user.password, organization_id = user.organization_id, is_customer = user.is_customer)
+    new_user = User(name = user.name,email = user.email , password = user.password, organization_id = user.organization_id)
     session.add(new_user)
     session.commit()
     return {"message":"User created successfully"}
