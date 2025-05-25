@@ -25,7 +25,7 @@ if database == "":
     exit()
 
 
-DATABASE_URL = f"postgresql://postgres:12345678@{host}/intern"
+DATABASE_URL = f"postgresql://{user}:{password}@{host}:{port}/{database}"
 engine = create_engine(DATABASE_URL)
 Session = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 Base = declarative_base()
