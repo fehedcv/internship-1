@@ -10,6 +10,7 @@ class UserCreate(BaseModel):
     password : str = Field(...,min_length=8,max_length=100)
     organization_id : int
     is_customer : bool
+
 class RoleCreate(BaseModel):
     name : str
 
@@ -18,6 +19,11 @@ class AssignUserRole(BaseModel):
     user_id : int
 
 
-
+class PutUser(BaseModel):
+    name:str
+    email : EmailStr 
+    password : str = Field(...,min_length=8,max_length=100)
+    organization_id : int
+    is_customer : bool
 
 

@@ -72,3 +72,66 @@ def get_assigned_roles():
     assigned_roles = session.query(UserRole).all()
     return {"AssignedRoles":assigned_roles}
 
+# -------------Put method for updating the user----------------
+
+@app.put("/user/{user_id}")
+def update_user(user_id: int, param: str, value: str):
+    put_user_data = session.query(User).filter(User.id == user_id).first()
+    if not put_user_data:
+        return {"message": "User not found"}
+    
+    valid_params = {"name", "email", "password", "organization_id"}
+    if param in valid_params:
+        setattr(put_user_data, param, value)
+    else:
+        return {"message": "Invalid parameter"}
+    
+    session.commit()
+    return {"message": "User updated successfully"}
+
+# --------------put method for update the org name-------------
+
+@app.put("/org/{org_id}")
+def update_org(org_id: int, param: str, value: str):
+    put_org_data = session.query(Organization).filter(Organization.id == org_id).first()
+    if not put_org_data:
+        return {"message": "Organization not found"}
+    valid_params = {"name"}
+    if param in valid_params:
+        setattr(put_org_data, param, value)
+    else:
+        return {"message": "Invalid parameter"}
+    session.commit()
+    return {"message": "Organization updated successfully"}
+
+# --------------put method for update the role name-------------
+
+@app.put("/roles/{role_id}")
+def update_role(role_id: int, param: str, value: str):
+    put_role_data = session.query(Role).filter(Role.id == role_id).first()
+    if not put_role_data:
+        return {"message": "Role not found"}
+    vaild_params = {"name"}
+    if param in vaild_params:
+        setattr(put_role_data, param, value)
+    else:
+        return {"message": "Invalid parameter"}
+    session.commit()
+    return {"message": "Role updated successfully"}
+
+# ----------put method for update the user role id----------------
+
+@app.put("/user/{user_id}/role/{role_id}")
+def update_user_role(user_id: int, role_id: int):
+    user_role_data = session.query(UserRole).filter(UserRole.user_id == user_id).first()
+    
+    if not user_role_data:
+        return {"message": "User does not have a role assigned"}
+    
+    role_data = session.query(Role).filter(Role.id == role_id).first()
+    if not role_data:
+        return {"message": "Role not found"}
+    
+    user_role_data.role_id = role_id
+    session.commit()
+    return {"message": "User role updated successfully"}

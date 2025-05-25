@@ -59,7 +59,7 @@ pip install -r requirements.txt
 Rename the sample config file:
 
 ```bash
-mv config.env .env
+cp config.env .env
 ```
 
 Then, open `.env` and update the configuration according to your environment (e.g., database URL, secret keys).
