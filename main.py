@@ -39,7 +39,7 @@ def del_org(user_id: int):
         User.id == user_id).first()
     session.delete(session_user)
     session.commit()
-    return {"message": "Organization deleted successfully"}
+    return {"message": "User deleted successfully"}
 
 #team
 @app.post("/users")
