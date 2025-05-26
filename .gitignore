@@ -1,5 +1,6 @@
 ./database/__pycache__
 ./env
 .env
+venv
 ./*/__pycache__
 ./__pycache__

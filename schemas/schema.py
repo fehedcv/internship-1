@@ -26,4 +26,6 @@ class PutUser(BaseModel):
     organization_id : int
     is_customer : bool
 
-
+class UpdateUser(BaseModel):
+    name:Optional[str] = None
+    email:Optional[EmailStr] = None

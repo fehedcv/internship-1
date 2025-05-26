@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from database.connection import Base, Session, engine
-from schemas.schema import OrgCreate, UserCreate, RoleCreate, AssignUserRole
+from schemas.schema import OrgCreate, UserCreate, RoleCreate, AssignUserRole,UpdateUser
 from models.organization import Organization
 from models.user import User, Role, UserRole
 
@@ -171,3 +171,17 @@ def search_orgs(name: str):
     if not orgs:
         return {"message": "not found in data"}
     return orgs
+# update user using patch
+
+@app.patch("/user/{user_id}/patch")
+def updateUser(user_id:int,updateData:UpdateUser):
+    userData = session.query(User).filter(User.id == user_id).first()
+    if not userData:
+        return {"message": "User not found"}
+    if updateData.name is not None:
+        userData.name = updateData.name
+    if updateData.email is not None:
+        userData.email = updateData.email
+    session.commit()
+    return {"message":"User updated succesfully!"}
+
