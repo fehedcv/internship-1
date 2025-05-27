@@ -1,7 +1,35 @@
-./database/__pycache__
-./env
-.env
-./*/__pycache__
-./__pycache__
+# Byte-compiled / optimized / DLL files
 __pycache__/
 **/__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+env/
+.venv/
+ENV/
+env.bak/
+venv/
+.venv/
+
+# Environment variables
+.env
+.env.*
+
+# PyCharm / VSCode
+.idea/
+.vscode/
+
+# SQLite / SQLAlchemy
+*.sqlite3
+*.db
+*.log
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Build
+build/
+dist/
+*.egg-info/

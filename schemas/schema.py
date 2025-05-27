@@ -1,4 +1,5 @@
 from pydantic import BaseModel,EmailStr,Field
+from typing import Dict
 
 class OrgCreate(BaseModel):
     name: str
@@ -24,5 +25,9 @@ class PutUser(BaseModel):
     password : str = Field(...,min_length=8,max_length=100)
     organization_id : int
 
+class UpdateParam(BaseModel):
+    param: str
+    value: str
 
-
+class MultiUpdate(BaseModel):
+    updates: Dict[str, str]

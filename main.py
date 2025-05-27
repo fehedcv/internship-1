@@ -1,13 +1,44 @@
-from fastapi import FastAPI
+from fastapi import FastAPI,HTTPException
 from database.connection import Base, Session, engine
 from schemas.schema import OrgCreate, UserCreate, RoleCreate, AssignUserRole
 from models.organization import Organization
 from models.user import User, Role, UserRole
+from sqlalchemy.orm import Session as f_Session
+from schemas.schema import UpdateParam,MultiUpdate
 
 session = Session()
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+# -------------functions for repeated code----------------
+
+def get_object_by_id(model, obj_id, id_field='id', not_found_msg='Object not found', session: f_Session = session):
+    obj = session.query(model).filter(getattr(model, id_field) == obj_id).first()
+    if not obj:
+        raise HTTPException(status_code=404, detail=not_found_msg)
+    return obj
+
+def validate_param(param, valid_params):
+    if param not in valid_params:
+        raise HTTPException(status_code=400, detail=f"Invalid parameter: {param}")
+
+def set_and_commit(obj, param, value):
+    try:
+        setattr(obj, param, value)
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+def commit_session():
+    try:
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    
+# ------------function end here-------------
+
 
 #team
 @app.post("/orgs")
@@ -88,72 +119,48 @@ def get_assigned_roles():
 # -------------Put method for updating the user----------------
 
 #prv
-@app.put("/user/{user_id}")
-def update_user(user_id: int, param: str, value: str):
-    put_user_data = session.query(User).filter(User.id == user_id).first()
-    if not put_user_data:
-        return {"message": "User not found"}
-
+@app.put("/users/{user_id}")
+def update_user(user_id: int, update: MultiUpdate):
+    user = get_object_by_id(User, user_id, not_found_msg="User not found")
     valid_params = {"name", "email", "password", "organization_id"}
-    if param in valid_params:
-        setattr(put_user_data, param, value)
-    else:
-        return {"message": "Invalid parameter"}
 
-    session.commit()
+    for param, value in update.updates.items():
+        validate_param(param, valid_params)
+        setattr(user, param, value)
+    commit_session()
     return {"message": "User updated successfully"}
 
 # --------------put method for update the org name-------------
 
 #prv
-@app.put("/org/{org_id}")
-def update_org(org_id: int, param: str, value: str):
-    put_org_data = session.query(Organization).filter(
-        Organization.id == org_id).first()
-    if not put_org_data:
-        return {"message": "Organization not found"}
-    valid_params = {"name"}
-    if param in valid_params:
-        setattr(put_org_data, param, value)
-    else:
-        return {"message": "Invalid parameter"}
-    session.commit()
+@app.put("/orgs/{org_id}")
+def update_org(org_id: int, update: UpdateParam):
+    org = get_object_by_id(Organization, org_id, not_found_msg="Organization not found")
+    validate_param(update.param, {"name"})
+    set_and_commit(org, update.param, update.value)
     return {"message": "Organization updated successfully"}
 
 # --------------put method for update the role name-------------
 
 #prv
 @app.put("/roles/{role_id}")
-def update_role(role_id: int, param: str, value: str):
-    put_role_data = session.query(Role).filter(Role.id == role_id).first()
-    if not put_role_data:
-        return {"message": "Role not found"}
-    vaild_params = {"name"}
-    if param in vaild_params:
-        setattr(put_role_data, param, value)
-    else:
-        return {"message": "Invalid parameter"}
-    session.commit()
+def update_role(role_id: int, update: UpdateParam):
+    role = get_object_by_id(Role, role_id, not_found_msg="Role not found")
+    validate_param(update.param, {"name"})
+    set_and_commit(role, update.param, update.value)
     return {"message": "Role updated successfully"}
 
 # ----------put method for update the user role id----------------
 
 #prv
-@app.put("/user/{user_id}/role/{role_id}")
+@app.put("/users/{user_id}/roles/{role_id}")
 def update_user_role(user_id: int, role_id: int):
-    user_role_data = session.query(UserRole).filter(
-        UserRole.user_id == user_id).first()
-
-    if not user_role_data:
-        return {"message": "User does not have a role assigned"}
-
-    role_data = session.query(Role).filter(Role.id == role_id).first()
-    if not role_data:
-        return {"message": "Role not found"}
-
-    user_role_data.role_id = role_id
-    session.commit()
+    user_role = get_object_by_id(UserRole, user_id, 'user_id', "User does not have a role assigned")
+    _ = get_object_by_id(Role, role_id, not_found_msg="Role not found")
+    user_role.role_id = role_id
+    commit_session()
     return {"message": "User role updated successfully"}
+
 
 #nor
 @app.get("/get_user_by_id/{user_id}")
