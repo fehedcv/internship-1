@@ -1,6 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI,HTTPException
 from database.connection import Base, Session, engine
-from schemas.schema import OrgCreate, UserCreate, RoleCreate, AssignUserRole
+from schemas.schema import OrgCreate, UserCreate, RoleCreate, AssignUserRole,UpdateUser
 from models.organization import Organization
 from models.user import User, Role, UserRole
 
@@ -72,7 +72,7 @@ def get_roles():
     return {"Roles": roles}
 
 #team
-@app.post("/role_assign")
+@app.post("/rolesAssign")
 def assign_role(assign: AssignUserRole):
     assignRole = UserRole(user_id=assign.user_id, role_id=assign.role_id)
     session.add(assignRole)
@@ -80,7 +80,7 @@ def assign_role(assign: AssignUserRole):
     return {"message": "Role assigned successfully"}
 
 #team
-@app.get("/assignedRoles")
+@app.get("/assignRoles")
 def get_assigned_roles():
     assigned_roles = session.query(UserRole).all()
     return {"AssignedRoles": assigned_roles}
@@ -88,7 +88,7 @@ def get_assigned_roles():
 # -------------Put method for updating the user----------------
 
 #prv
-@app.put("/user/{user_id}")
+@app.put("/users/{user_id}")
 def update_user(user_id: int, param: str, value: str):
     put_user_data = session.query(User).filter(User.id == user_id).first()
     if not put_user_data:
@@ -139,7 +139,7 @@ def update_role(role_id: int, param: str, value: str):
 # ----------put method for update the user role id----------------
 
 #prv
-@app.put("/user/{user_id}/role/{role_id}")
+@app.put("/users/{user_id}/role/{role_id}")
 def update_user_role(user_id: int, role_id: int):
     user_role_data = session.query(UserRole).filter(
         UserRole.user_id == user_id).first()
@@ -179,3 +179,44 @@ def search_orgs(name: str):
     if not orgs:
         return {"message": "not found in data"}
     return orgs
+
+#sha
+@app.patch("/users/{user_id}")
+def updateUser(user_id: int, updateData: UpdateUser):
+    message = ""
+    try:
+        userData = session.query(User).filter(User.id == user_id).first()
+        if not userData:
+            message = "User not found"
+            raise HTTPException(status_code=404, detail=message)
+
+        updated = False 
+
+        if updateData.name is not None:
+            userData.name = updateData.name
+            updated = True
+
+        if updateData.email is not None:
+            userData.email = updateData.email
+            updated = True
+
+        if not updated:
+            message = "No data provided to update"
+            raise HTTPException(status_code=400, detail=message)
+
+        session.commit()
+        message = "User updated successfully"
+        return {"message": message}
+
+    except HTTPException as http_err:
+        message = http_err.detail
+        raise http_err
+
+    except Exception as e:
+        session.rollback()
+        message = "User update failed due to internal error"
+        raise HTTPException(status_code=500, detail=f"Internal Server Error:{e}")
+
+    finally:
+        print(f"Update status: {message}")
+        session.close()

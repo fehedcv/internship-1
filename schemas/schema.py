@@ -1,4 +1,5 @@
 from pydantic import BaseModel,EmailStr,Field
+from typing import Optional
 
 class OrgCreate(BaseModel):
     name: str
@@ -24,5 +25,7 @@ class PutUser(BaseModel):
     password : str = Field(...,min_length=8,max_length=100)
     organization_id : int
 
-
+class UpdateUser(BaseModel):
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
 
