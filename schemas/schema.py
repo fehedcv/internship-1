@@ -1,5 +1,5 @@
 from pydantic import BaseModel,EmailStr,Field
-from typing import Dict
+from typing import Dict,Optional
 
 class OrgCreate(BaseModel):
     name: str
