@@ -31,3 +31,8 @@ class UpdateParam(BaseModel):
 
 class MultiUpdate(BaseModel):
     updates: Dict[str, str]
+
+class UpdateUser(BaseModel):
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
+
