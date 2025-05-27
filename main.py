@@ -186,3 +186,45 @@ def search_orgs(name: str):
     if not orgs:
         return {"message": "not found in data"}
     return orgs
+
+#sha
+@app.patch("/users/{user_id}")
+def updateUser(user_id: int, updateData: UpdateUser):
+    message = ""
+    try:
+        userData = session.query(User).filter(User.id == user_id).first()
+        if not userData:
+            message = "User not found"
+            raise HTTPException(status_code=404, detail=message)
+
+        updated = False 
+
+        if updateData.name is not None:
+            userData.name = updateData.name
+            updated = True
+
+        if updateData.email is not None:
+            userData.email = updateData.email
+            updated = True
+
+        if not updated:
+            message = "No data provided to update"
+            raise HTTPException(status_code=400, detail=message)
+
+        session.commit()
+        message = "User updated successfully"
+        return {"message": message}
+
+    except HTTPException as http_err:
+        message = http_err.detail
+        raise http_err
+
+    except Exception as e:
+        session.rollback()
+        message = "User update failed due to internal error"
+        raise HTTPException(status_code=500, detail=f"Internal Server Error:{e}")
+
+    finally:
+        print(f"Update status: {message}")
+        session.close()
+
