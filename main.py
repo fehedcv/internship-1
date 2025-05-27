@@ -1,6 +1,6 @@
 from fastapi import FastAPI,HTTPException
 from database.connection import Base, Session, engine
-from schemas.schema import OrgCreate, UserCreate, RoleCreate, AssignUserRole
+from schemas.schema import OrgCreate, UserCreate, RoleCreate, AssignUserRole,UpdateUser
 from models.organization import Organization
 from models.user import User, Role, UserRole
 from sqlalchemy.orm import Session as f_Session
