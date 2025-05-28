@@ -5,12 +5,13 @@ from models.organization import Organization
 from models.user import User, Role, UserRole
 from sqlalchemy.orm import Session as f_Session
 from schemas.schema import UpdateParam,MultiUpdate
+from models.user import User
 
 session = Session()
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-# -------------functions for repeated code----------------
+# ------------------ Helper Functions ------------------ #
 
 def get_object_by_id(model, obj_id, id_field='id', not_found_msg='Object not found', session: f_Session = session):
     obj = session.query(model).filter(getattr(model, id_field) == obj_id).first()
@@ -21,6 +22,13 @@ def get_object_by_id(model, obj_id, id_field='id', not_found_msg='Object not fou
 def validate_param(param, valid_params):
     if param not in valid_params:
         raise HTTPException(status_code=400, detail=f"Invalid parameter: {param}")
+    
+def get_updatable_fields(model, exclude_fields=["id"]):
+    return [column.name for column in model.__table__.columns if column.name not in exclude_fields]
+
+
+def get_updatable_fields(model, exclude_fields=["id"]):
+    return [column.name for column in model.__table__.columns if column.name not in exclude_fields]
 
 def set_and_commit(obj, param, value):
     try:
@@ -36,8 +44,8 @@ def commit_session():
     except Exception as e:
         session.rollback()
         raise HTTPException(status_code=500, detail=str(e))
-    
-# ------------function end here-------------
+
+# --------code end hre----
 
 
 #team
@@ -122,8 +130,7 @@ def get_assigned_roles():
 @app.put("/users/{user_id}")
 def update_user(user_id: int, update: MultiUpdate):
     user = get_object_by_id(User, user_id, not_found_msg="User not found")
-    valid_params = {"name", "email", "password", "organization_id"}
-
+    valid_params = get_updatable_fields(User)
     for param, value in update.updates.items():
         validate_param(param, valid_params)
         setattr(user, param, value)
@@ -136,7 +143,8 @@ def update_user(user_id: int, update: MultiUpdate):
 @app.put("/orgs/{org_id}")
 def update_org(org_id: int, update: UpdateParam):
     org = get_object_by_id(Organization, org_id, not_found_msg="Organization not found")
-    validate_param(update.param, {"name"})
+    valid_params = get_updatable_fields(Organization)
+    validate_param(update.param, valid_params)
     set_and_commit(org, update.param, update.value)
     return {"message": "Organization updated successfully"}
 
@@ -146,7 +154,8 @@ def update_org(org_id: int, update: UpdateParam):
 @app.put("/roles/{role_id}")
 def update_role(role_id: int, update: UpdateParam):
     role = get_object_by_id(Role, role_id, not_found_msg="Role not found")
-    validate_param(update.param, {"name"})
+    valid_params = get_updatable_fields(Role)
+    validate_param(update.param, valid_params)
     set_and_commit(role, update.param, update.value)
     return {"message": "Role updated successfully"}
 
