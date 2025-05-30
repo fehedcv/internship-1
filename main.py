@@ -26,10 +26,6 @@ def validate_param(param, valid_params):
 def get_updatable_fields(model, exclude_fields=["id"]):
     return [column.name for column in model.__table__.columns if column.name not in exclude_fields]
 
-
-def get_updatable_fields(model, exclude_fields=["id"]):
-    return [column.name for column in model.__table__.columns if column.name not in exclude_fields]
-
 def set_and_commit(obj, param, value):
     try:
         setattr(obj, param, value)
