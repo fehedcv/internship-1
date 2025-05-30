@@ -11,6 +11,7 @@ session = Session()
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
 # ------------------ Helper Functions ------------------ #
 
 def get_object_by_id(model, obj_id, id_field='id', not_found_msg='Object not found', session: f_Session = session):
@@ -26,10 +27,6 @@ def validate_param(param, valid_params):
 def get_updatable_fields(model, exclude_fields=["id"]):
     return [column.name for column in model.__table__.columns if column.name not in exclude_fields]
 
-
-def get_updatable_fields(model, exclude_fields=["id"]):
-    return [column.name for column in model.__table__.columns if column.name not in exclude_fields]
-
 def set_and_commit(obj, param, value):
     try:
         setattr(obj, param, value)
@@ -39,11 +36,24 @@ def set_and_commit(obj, param, value):
         raise HTTPException(status_code=500, detail=str(e))
 
 def commit_session():
-    try:
-        session.commit()
+    try: 
+        session.commit() 
     except Exception as e:
         session.rollback()
         raise HTTPException(status_code=500, detail=str(e))
+    
+def apply_updates(instance, update_data, allowed_fields):
+    updated = False
+    for field, value in update_data.dict(exclude_unset=True).items():
+        if field in allowed_fields and value is not None:
+            setattr(instance, field, value)
+            updated = True
+    return updated
+
+def handle_update_response(updated):
+    if not updated:
+        raise HTTPException(status_code=400, detail="No data provided to update")
+
 
 # --------code end hre----
 
@@ -66,18 +76,18 @@ def get_org(page_number: int, limit: int = 10):
 #fhd
 @app.delete("/orgs/{org_id}")
 def del_org(org_id: int):
-    session_org = session.query(Organization).filter(
-        Organization.id == org_id).first()
+    session_org = get_object_by_id(Organization, org_id, not_found_msg="Organization not found")
     session.delete(session_org)
-    session.commit()
+    commit_session()
+
     return {"message": "Organization deleted successfully"}
+
 #fhd
 @app.delete("/users/{user_id}")
-def del_org(user_id: int):
-    session_user = session.query(User).filter(
-        User.id == user_id).first()
+def del_user(user_id: int):  # fixed function name conflict
+    session_user = get_object_by_id(User, user_id, not_found_msg="User not found")
     session.delete(session_user)
-    session.commit()
+    commit_session()
     return {"message": "User deleted successfully"}
 
 #team
@@ -86,7 +96,7 @@ def create_user(user: UserCreate):
     new_user = User(name=user.name, email=user.email,
                     password=user.password, organization_id=user.organization_id)
     session.add(new_user)
-    session.commit()
+    commit_session()
     return {"message": "User created successfully"}
 
 #fhd
@@ -115,7 +125,7 @@ def get_roles():
 def assign_role(assign: AssignUserRole):
     assignRole = UserRole(user_id=assign.user_id, role_id=assign.role_id)
     session.add(assignRole)
-    session.commit()
+    commit_session()
     return {"message": "Role assigned successfully"}
 
 #team
@@ -174,9 +184,7 @@ def update_user_role(user_id: int, role_id: int):
 #nor
 @app.get("/get_user_by_id/{user_id}")
 def get_user_by_id(user_id: int):
-    user = session.query(User).filter(User.id == user_id).first()
-    if not user:
-        return {"message": "user not found"}
+    user = get_object_by_id(User, user_id, not_found_msg="User not found")
     return user
 
 #nor
@@ -184,56 +192,36 @@ def get_user_by_id(user_id: int):
 def search_users(name: str):
     users = session.query(User).filter(User.name.ilike(f"%{name}%")).all()
     if not users:
-        return {"message": "not found in that name"}
+        raise HTTPException(status_code=404, detail="No users found with that name")
     return users
 
 #nor
 @app.get("/search_orgs/{name}")
 def search_orgs(name: str):
-    orgs = session.query(Organization).filter(
-        Organization.name.ilike(f"%{name}%")).all()
+    orgs = session.query(Organization).filter(Organization.name.ilike(f"%{name}%")).all()
     if not orgs:
-        return {"message": "not found in data"}
+        raise HTTPException(status_code=404, detail="No organizations found with that name")
     return orgs
 
 #sha
 @app.patch("/users/{user_id}")
 def updateUser(user_id: int, updateData: UpdateUser):
-    message = ""
     try:
-        userData = session.query(User).filter(User.id == user_id).first()
-        if not userData:
-            message = "User not found"
-            raise HTTPException(status_code=404, detail=message)
+        userData = get_object_by_id(User, user_id, not_found_msg="User not found")
 
-        updated = False 
+        allowed_fields = get_updatable_fields(User)
+        updated = apply_updates(userData, updateData, allowed_fields)
+        handle_update_response(updated)
 
-        if updateData.name is not None:
-            userData.name = updateData.name
-            updated = True
-
-        if updateData.email is not None:
-            userData.email = updateData.email
-            updated = True
-
-        if not updated:
-            message = "No data provided to update"
-            raise HTTPException(status_code=400, detail=message)
-
-        session.commit()
-        message = "User updated successfully"
-        return {"message": message}
+        commit_session()
+        return {"message": "User updated successfully"}
 
     except HTTPException as http_err:
-        message = http_err.detail
         raise http_err
 
     except Exception as e:
         session.rollback()
-        message = "User update failed due to internal error"
-        raise HTTPException(status_code=500, detail=f"Internal Server Error:{e}")
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
 
     finally:
-        print(f"Update status: {message}")
         session.close()
-
