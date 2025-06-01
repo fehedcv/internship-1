@@ -52,16 +52,6 @@ def commit_session():
         session.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
-# noor
-
-
-def search_by_name(model, name_field: str, name: str, not_found_msg="No records found", session=session):
-    results = session.query(model).filter(
-        getattr(model, name_field).ilike(f"%{name}%")).all()
-    if not results:
-        raise HTTPException(status_code=404, detail=not_found_msg)
-    return results
-
 # --------code end hre----
 
 
@@ -72,13 +62,6 @@ def create_org(org: OrgCreate):
     session.add(session_org)
     session.commit()
     return {"message": "Organization created successfully"}
-
-# noor
-
-
-@app.get("/orgs/search")
-def search_orgs(name: str):
-    return search_by_name(Organization, "name", name, "No organizations found with that name")
 
 # fhd
 
@@ -120,13 +103,6 @@ def create_user(user: UserCreate):
     session.add(new_user)
     session.commit()
     return {"message": "User created successfully"}
-
-# noor
-
-
-@app.get("/users/search")
-def search_users(name: str):
-    return search_by_name(User, "name", name, "No users found with that name")
 
 # fhd
 
@@ -230,14 +206,38 @@ def update_user_role(user_id: int, role_id: int):
     return {"message": "User role updated successfully"}
 
 
-# noor
-@app.get("/user/{user_id}")
+# nor
+@app.get("/get_user_by_id/{user_id}")
 def get_user_by_id(user_id: int):
-    user = get_object_by_id(User, user_id, not_found_msg="User not found")
+    user = session.query(User).filter(User.id == user_id).first()
+    if not user:
+        return {"message": "user not found"}
     return user
 
+# nor
+
+
+@app.get("/search_users/{name}")
+def search_users(name: str):
+    users = session.query(User).filter(User.name.ilike(f"%{name}%")).all()
+    if not users:
+        return {"message": "not found in that name"}
+    return users
+
+# nor
+
+
+@app.get("/search_orgs/{name}")
+def search_orgs(name: str):
+    orgs = session.query(Organization).filter(
+        Organization.name.ilike(f"%{name}%")).all()
+    if not orgs:
+        return {"message": "not found in data"}
+    return orgs
 
 # sha
+
+
 @app.patch("/users/{user_id}")
 def updateUser(user_id: int, updateData: UpdateUser):
     message = ""
