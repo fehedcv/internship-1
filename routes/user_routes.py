@@ -1,9 +1,9 @@
-from fastapi import APIRouter,HTTPException,Depends
-from database.connection import  Session,get_db
+from fastapi import APIRouter,HTTPException
+from database.connection import  Session
 from models.user import User,Role,UserRole
 from schemas.base_schemas import MultiUpdate
 from schemas.user_schemas import UserCreate,UpdateUser
-from controllers.base_controller import commit_session,set_and_commit,get_object_by_id,validate_param,apply_updates,handle_update_response,get_updatable_fields
+from controllers.base_controller import commit_session,get_object_by_id,validate_param,apply_updates,handle_update_response,get_updatable_fields
 
 session = Session()
 router = APIRouter()
@@ -16,7 +16,7 @@ def create_user(user: UserCreate):
     commit_session()
     return {"message": "User created successfully"}
 
-@router.get("/page/{page_number}")
+@router.get("/{page_number}")
 def get_user(page_number: int):
     offset = (page_number-1) * 10
     users = session.query(User).offset(offset).limit(10).all()
@@ -25,7 +25,7 @@ def get_user(page_number: int):
 # error 500 not working delete method 
 @router.delete("/{user_id}")
 def del_user(user_id: int,):  # fixed function name conflict
-    session_user = get_object_by_id(User, user_id, not_found_msg="User not found")
+    session_user = session.query(User).filter(User.id==user_id).first()
     session.delete(session_user)
     commit_session()
     return {"message": "User deleted successfully"}
