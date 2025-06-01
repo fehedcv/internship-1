@@ -12,6 +12,7 @@ session = Session()
 
 @router.post("/orgs")
 def create_org(org: OrgCreate):
+    #create organization
     try:
         session_org = Organization(name=org.name)
         session.add(session_org)
@@ -23,6 +24,7 @@ def create_org(org: OrgCreate):
 
 @router.get("/orgs/{page_number}/{limit}")
 def get_org(page_number: int, limit: int):
+    #get paginated list of organizations
     try:
         offset = (page_number - 1) * limit
         orgs = session.query(Organization).offset(offset).limit(limit).all()
@@ -32,6 +34,7 @@ def get_org(page_number: int, limit: int):
 
 @router.delete("/orgs/{org_id}")
 def del_org(org_id: int):
+    #delete organization
     try:
         session_org = session.query(Organization).filter(Organization.id == org_id).first()
         if not session_org:
@@ -47,6 +50,7 @@ def del_org(org_id: int):
 
 @router.put("/orgs/{org_id}")
 def update_org(org_id: int, update: UpdateParam):
+    #update organization
     try:
         org = get_object_by_id(Organization, org_id, not_found_msg="Organization not found")
         valid_params = get_updatable_fields(Organization)
@@ -61,6 +65,7 @@ def update_org(org_id: int, update: UpdateParam):
 
 @router.get("/search_orgs/{name}")
 def search_orgs(name: str):
+    #search for organizations by name
     try:
         orgs = session.query(Organization).filter(Organization.name.ilike(f"%{name}%")).all()
         if not orgs:
