@@ -31,7 +31,7 @@ def create_user(user: UserCreate):
         session.close()
 
 
-
+#get
 @router.get("/{page_number}")
 def get_user(page_number: int):
     #get paginated list of users
