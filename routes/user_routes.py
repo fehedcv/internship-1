@@ -5,7 +5,7 @@ from schemas.base_schemas import MultiUpdate
 from schemas.user_schemas import UserCreate,UpdateUser
 from controllers.base_controller import commit_session,get_object_by_id,validate_param,apply_updates,handle_update_response,get_updatable_fields
 
-
+session = Session()
 router = APIRouter()
 
 @router.post("/")
@@ -31,7 +31,7 @@ def create_user(user: UserCreate):
         session.close()
 
 
-
+#get
 @router.get("/{page_number}")
 def get_user(page_number: int):
     #get paginated list of users
@@ -119,7 +119,6 @@ def search_users(name: str):
 @router.patch("/{user_id}")
 def updateUser(user_id: int, updateData: UpdateUser):
     #patch user
-    session = Session()
     try:
         userData = get_object_by_id(User, user_id, not_found_msg="User not found")
 
