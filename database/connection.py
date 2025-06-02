@@ -1,9 +1,9 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker,declarative_base
+from sqlalchemy.orm import sessionmaker, declarative_base
 from dotenv import load_dotenv
 import os
 
-load_dotenv() 
+load_dotenv()
 
 user = os.getenv('username')
 password = os.getenv('password')
@@ -27,14 +27,5 @@ if database == "":
 
 DATABASE_URL = f"postgresql://{user}:{password}@{host}:{port}/{database}"
 engine = create_engine(DATABASE_URL)
-Session = sessionmaker(bind = engine,autoflush=False,autocommit=False)
+Session = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 Base = declarative_base()
-SessionLocal = sessionmaker(bind=engine)
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
