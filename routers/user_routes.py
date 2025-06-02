@@ -8,11 +8,7 @@ from controllers.base_controller import commit_session,get_object_by_id,validate
 session = Session()
 router = APIRouter()
 
-<<<<<<< HEAD
-@router.post("")
-=======
 @router.post("/create")
->>>>>>> c4a6c2f70e9273311fcf69cfc8e1bf3e301f7c4c
 def create_user(user: UserCreate):
     #create user
     session = Session()
