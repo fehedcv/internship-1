@@ -10,7 +10,7 @@ router = APIRouter()
 session = Session()
 
 
-@router.post("/orgs")
+@router.post("/create")
 def create_org(org: OrgCreate):
     #create organization
     try:
@@ -22,17 +22,30 @@ def create_org(org: OrgCreate):
         session.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/orgs/{page_number}/{limit}")
-def get_org(page_number: int, limit: int):
-    #get paginated list of organizations
+from fastapi import Query
+
+@router.get("/{page_number}")
+def get_org(page_number: int, limit: int = Query(10)):
+    if page_number < 1:
+        raise HTTPException(status_code=400, detail="Invalid page number. Must be >= 1.")
+    
+    session = Session()
     try:
+        total_orgs = session.query(Organization).count()
+        total_pages = (total_orgs + limit - 1) // limit  # ceiling division
+
+        if page_number > total_pages and total_orgs != 0:
+            raise HTTPException(status_code=404, detail="Page not found.")
+
         offset = (page_number - 1) * limit
         orgs = session.query(Organization).offset(offset).limit(limit).all()
         return orgs
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-@router.delete("/orgs/{org_id}")
+    finally:
+        session.close()
+        
+@router.delete("/{org_id}")
 def del_org(org_id: int):
     #delete organization
     try:
@@ -48,7 +61,7 @@ def del_org(org_id: int):
         session.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.put("/orgs/{org_id}")
+@router.put("/{org_id}")
 def update_org(org_id: int, update: UpdateParam):
     #update organization
     try:
@@ -63,7 +76,7 @@ def update_org(org_id: int, update: UpdateParam):
         session.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/search_orgs/{name}")
+@router.get("/search/{name}")
 def search_orgs(name: str):
     #search for organizations by name
     try:
