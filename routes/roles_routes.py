@@ -8,7 +8,7 @@ from controllers.base_controller import commit_session,set_and_commit,get_object
 router = APIRouter()
 
 
-@router.post("/roles")
+@router.post("/create")
 def create_role(newRole: RoleCreate):
     #create role
     session = Session()
@@ -22,7 +22,7 @@ def create_role(newRole: RoleCreate):
         raise HTTPException(status_code=500, detail=f"Failed to create role: {str(e)}")
 
 
-@router.get("/roles")
+@router.get("/")
 def get_roles():
     session = Session()
     try:
@@ -32,7 +32,7 @@ def get_roles():
         raise HTTPException(status_code=500, detail=f"Failed to fetch roles: {str(e)}")
 
 
-@router.post("/role_assign")
+@router.post("/assign")
 def assign_role(assign: AssignUserRole):
     session = Session()
     try:
@@ -45,7 +45,7 @@ def assign_role(assign: AssignUserRole):
         raise HTTPException(status_code=500, detail=f"Failed to assign role: {str(e)}")
 
 
-@router.get("/assignedRoles")
+@router.get("/assigned")
 def get_assigned_roles():
     session = Session()
     try:
@@ -55,7 +55,7 @@ def get_assigned_roles():
         raise HTTPException(status_code=500, detail=f"Failed to fetch assigned roles: {str(e)}")
 
 
-@router.put("/roles/{role_id}")
+@router.put("/{role_id}")
 def update_role(role_id: int, update: UpdateParam):
     session = Session()
     try:

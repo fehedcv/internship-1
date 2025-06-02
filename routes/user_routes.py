@@ -1,4 +1,4 @@
-from fastapi import APIRouter,HTTPException
+from fastapi import APIRouter,HTTPException,Path
 from database.connection import  Session
 from models.user import User,Role,UserRole
 from schemas.base_schemas import MultiUpdate
@@ -8,7 +8,7 @@ from controllers.base_controller import commit_session,get_object_by_id,validate
 
 router = APIRouter()
 
-@router.post("/")
+@router.post("/create")
 def create_user(user: UserCreate):
     #create user
     session = Session()
@@ -33,12 +33,15 @@ def create_user(user: UserCreate):
 
 
 @router.get("/{page_number}")
-def get_user(page_number: int):
-    #get paginated list of users
+def get_user(page_number: int = Path(..., gt=0, description="Page number must be greater than 0")):
     session = Session()
     try:
         offset = (page_number - 1) * 10
         users = session.query(User).offset(offset).limit(10).all()
+        
+        if not users:
+            raise HTTPException(status_code=404, detail="No users found on this page.")
+        
         return users
 
     except Exception as e:
