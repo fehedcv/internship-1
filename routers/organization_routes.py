@@ -13,7 +13,7 @@ router = APIRouter()
 session = Session()
 
 
-@router.post("/create")
+@router.post("/")
 def create_org(org: OrgCreate):
     """
     Creates a new organization.
@@ -57,7 +57,7 @@ def create_org(org: OrgCreate):
         session.close()
 
 
-@router.get("/organizations/{page_number}")
+@router.get("/{page_number}")
 def get_orgs(
     page_number: int = Path(..., gt=0, description="Page number must be greater than 0"), 
     limit: int = Query(10, gt=0, description="Results per page")
