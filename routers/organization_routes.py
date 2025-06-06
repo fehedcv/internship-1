@@ -124,7 +124,7 @@ def get_orgs(
     finally:
         session.close()
         
-@router.delete("/organization/{org_id}")
+@router.delete("/{org_id}")
 def delete_organization(org_id: int):
     """
     Deletes an organization from the database.
@@ -167,7 +167,7 @@ def delete_organization(org_id: int):
     finally:
         session.close()
 
-@router.put("/organization/{org_id}")
+@router.put("/{org_id}")
 def update_organization(org_id: int, update: UpdateParam):
     """
     Updates an organization's details.
@@ -254,3 +254,11 @@ def search_organizations(name: str):
 
     finally:
         session.close()
+
+@router.get("/login/{org_id}")
+def get_org(org_id: int):
+    db = Session()
+    org = db.query(Organization).filter(Organization.id == org_id).first()
+    if not org:
+        raise HTTPException(status_code=404, detail="Organization not found")
+    return org
