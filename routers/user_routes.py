@@ -141,3 +141,12 @@ def updateUser(user_id: int, updateData: UpdateUser):
 
     finally:
         session.close()
+
+
+@router.get("/login/{org_id}")
+def get_org(org_id: int):
+    db = Session()
+    org = db.query(User).filter(User.id == org_id).first()
+    if not org:
+        raise HTTPException(status_code=404, detail="User not found")
+    return org

@@ -255,10 +255,4 @@ def search_organizations(name: str):
     finally:
         session.close()
 
-@router.get("/login/{org_id}")
-def get_org(org_id: int):
-    db = Session()
-    org = db.query(Organization).filter(Organization.id == org_id).first()
-    if not org:
-        raise HTTPException(status_code=404, detail="Organization not found")
-    return org
+
